@@ -2,14 +2,22 @@
 
 import { useAgoraChatState } from "@/state/useAgoraChatState";
 import useUserState from "@/state/useUserState";
-import { ExternalLink, X, Send, MessageCircle, Pin } from "lucide-react";
+import {
+  ExternalLink,
+  X,
+  Send,
+  MessageCircle,
+  Pin,
+  LogOut,
+} from "lucide-react";
 import toast from "react-hot-toast";
 import agoraChat, { AgoraChat } from "agora-chat";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Avatar from "./Avatar";
 import { useAgoraConversations } from "@/state/useAgoraConversation";
 import { useParams } from "next/navigation";
+import { useGetUsers } from "@/api/user/userApi";
 
 // Helper function to format timestamp
 const formatTime = (timestamp: number) => {
@@ -25,12 +33,13 @@ const UserList = () => {
   const [message, setMessage] = useState("");
   const { connection } = useAgoraChatState();
   const userId = useUserState((state) => state?.userId);
+  const logout = useUserState((state) => state?.logout);
+  const { data, isLoading } = useGetUsers();
   const { conversations, setConversations } = useAgoraConversations();
 
   const { name } = useParams();
 
-  const sortedConversations =
-    conversations?.sort((a, b) => {
+  const sortedConversations = useMemo(()=> conversations?.sort((a, b) => {
       // Then sort by last message time
       const bTime =
         b?.lastMessage?.type == "txt" || b?.lastMessage?.type == "img"
@@ -41,7 +50,8 @@ const UserList = () => {
           ? a?.lastMessage?.time
           : 0;
       return bTime - aTime;
-    }) || [];
+    }) || [], [conversations])
+    
   const handleSubmit = async () => {
     // Basic validation
     if (!username.trim()) {
@@ -58,16 +68,34 @@ const UserList = () => {
       from: userId,
       type: "txt",
       chatType: "singleChat",
-      msg: "hello world",
+      msg: message,
     });
-    connection?.send(res).then((res) => console.log(res));
+    const send = await connection?.send(res);
+    const msg = send?.message;
+    if (msg) {
+      setMessage("");
+      const newConversations = conversations?.map((item) => {
+        if (item?.conversationId == msg?.to) {
+          return {
+            ...item,
+            lastMessage: msg,
+          };
+        }
+        return item;
+      });
+      setConversations(newConversations);
+    }
     toast.success("Message sent successfully!");
 
     // Reset form and close popup
     setUsername("");
     setMessage("");
     setIsPopUp(false);
-    getServerConversations()
+    getServerConversations();
+  };
+
+  const handleLogout = () => {
+    logout();
   };
   const truncateMessage = (msg: string, maxLength: number = 50) => {
     return msg.length > maxLength ? msg.substring(0, maxLength) + "..." : msg;
@@ -91,7 +119,7 @@ const UserList = () => {
       if (conversationItems) {
         setConversations(conversationItems);
       }
-    } catch  {}
+    } catch {}
   }
   useEffect(() => {
     connection?.addEventHandler("globalMsgHandler", {
@@ -123,17 +151,25 @@ const UserList = () => {
     getServerConversations();
   }, [connection]);
 
-
   return (
     <div className="h-screen bg-white flex flex-col  mx-auto w-full border-gray-200">
       {/* Header */}
       <div className="p-4 border-b border-gray-200">
-        <h1 className="text-xl font-semibold text-gray-800 mb-4">Messages</h1>
+        <div className="flex justify-between">
+          <h1 className="text-xl font-semibold text-gray-800 mb-4">Messages</h1>
+          <button
+            onClick={handleLogout}
+            className="p-2 hover:bg-gray-100 rounded-full transition-colors  cursor-pointer "
+          >
+            {" "}
+            <LogOut className="w-5 h-5 text-gray-600" />{" "}
+          </button>
+        </div>
         <div className="flex justify-between items-center">
           <p className=" capitalize text-gray-600">{userId}</p>
           <button
             onClick={() => setIsPopUp(true)}
-            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+            className="p-2 hover:bg-gray-100 rounded-full transition-colors cursor-pointer "
           >
             <ExternalLink className="w-5 h-5 text-gray-600" />
           </button>
@@ -238,22 +274,17 @@ const UserList = () => {
 
             {/* Form */}
             <div className="p-6 space-y-4">
-              <div>
-                <label
-                  htmlFor="username"
-                  className="block text-sm font-medium text-gray-700 mb-2"
-                >
-                  Username
-                </label>
-                <input
-                  type="text"
-                  id="username"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="Enter recipient username"
-                />
-              </div>
+              <select
+                className="w-full py-3 px-4 border border-black capitalize"
+                onChange={(e) => setUsername(e.target.value)}
+              >
+                <option> Select A User To start conversation </option>
+                {data
+                  ?.filter((user) => user?.username !== userId)
+                  ?.map((user) => (
+                    <option className="capitalize"> {user?.username} </option>
+                  ))}
+              </select>
 
               <div>
                 <label

@@ -1,9 +1,9 @@
 "use client";
 import { ChangeEvent, useEffect, useRef, useState } from "react";
-import { Send, Image as ImageIcon, X } from "lucide-react";
+import { Send, Image as ImageIcon, X, MoveRight, MoveLeftIcon } from "lucide-react";
 import useUserState from "@/state/useUserState";
 import { useAgoraChatState } from "@/state/useAgoraChatState";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import agoraChat, { AgoraChat } from "agora-chat";
 import Avatar from "@/components/Avatar";
 import { useAgoraConversations } from "@/state/useAgoraConversation";
@@ -13,7 +13,7 @@ const Page = () => {
   const { name } = useParams();
   const [newMessage, setNewMessage] = useState("");
   const [inputFile, setInputFile] = useState<File | null>(null);
-
+  const router =  useRouter()
   const [isTyping, setIsTyping] = useState(false);
   const [messages, setMessages] = useState<AgoraChat.MessagesType[]>([]);
   const [cursor, setCursor] = useState("");
@@ -205,6 +205,9 @@ const Page = () => {
       }
     }
   };
+  const handleBack = () => {
+    router.push("/")
+  }
 
   useEffect(() => {
     getMessage();
@@ -279,6 +282,10 @@ const Page = () => {
   return (
     <div className="flex-1 flex flex-col">
       {/* Chat Header */}
+      <div className="bg-white px-6 py-4 flex items-center gap-3 md:hidden " onClick={handleBack} >
+        <MoveLeftIcon/>
+        <span>Back</span>
+      </div>
       <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
         <div className="flex items-center space-x-3">
           <div className="relative">

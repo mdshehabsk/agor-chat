@@ -3,7 +3,7 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ChatTokenBuilder } from 'agora-token';
-import { IAgoraUserEntity } from './app.interface';
+import { IAgoraGetUsersResponse, IAgoraUserEntity } from './app.interface';
 
 @Injectable()
 export class AppService {
@@ -24,6 +24,22 @@ export class AppService {
       account,
       expireTimeInSeconds,
     );
+  }
+
+  async getUsers(): Promise<IAgoraUserEntity[]> {
+    const host = this.configService.get<string>('AGORA_APP_REST_API');
+    const orgName = this.configService.get<string>('AGORA_APP_ORGNAME');
+    const appName = this.configService.get<string>('AGORA_APP_NAME');
+    const url = `https://${host}/${orgName}/${appName}/users`;
+
+    const token = this.generateAppToken();
+    const res = await fetch(url, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    const data: IAgoraGetUsersResponse = await res.json();
+    return data?.entities;
   }
 
   generateAppToken(): string {

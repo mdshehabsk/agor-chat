@@ -2,7 +2,7 @@ import { Send } from "lucide-react";
 
 export default function Home() {
   return (
-    <div className="flex-1 flex flex-col">
+    <div className=" hidden  flex-1 md:flex flex-col">
       <div className="flex-1 flex items-center justify-center bg-gray-50">
         <div className="text-center">
           <div className="w-24 h-24 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">

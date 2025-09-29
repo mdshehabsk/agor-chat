@@ -6,12 +6,12 @@ type TState = {
   token: string;
   userId: string;
   updateState: (args: { token: string; userId: string }) => void;
+  logout: () => void;
 };
 
 const STORAGE_KEY = "userState";
 const EXPIRY_MS = 50 * 60 * 1000; // 50 minutes
 
-// Helper to read from localStorage and validate expiry
 function getInitialState() {
   if (typeof window === "undefined") return { token: "", userId: "" };
 
@@ -27,7 +27,7 @@ function getInitialState() {
     if (Date.now() < data.expiresAt) {
       return { token: data.token, userId: data.userId };
     } else {
-      localStorage.removeItem(STORAGE_KEY); // expired
+      localStorage.removeItem(STORAGE_KEY);
     }
   } catch {
     localStorage.removeItem(STORAGE_KEY);
@@ -40,15 +40,17 @@ const useUserState = create<TState>((set) => ({
 
   updateState: ({ token, userId }) => {
     const expiresAt = Date.now() + EXPIRY_MS;
-
-    // store to localStorage
     localStorage.setItem(
       STORAGE_KEY,
       JSON.stringify({ token, userId, expiresAt })
     );
-
-    // update Zustand state
     set({ token, userId });
+  },
+
+  // Clear state and localStorage
+  logout: () => {
+    localStorage.removeItem(STORAGE_KEY);
+    set({ token: "", userId: "" });
   },
 }));
 

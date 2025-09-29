@@ -1,6 +1,6 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import Axios from "../Axios";
-import {  IUserSigninResponse, IUserSignupPayload } from "./user.types";
+import {  IAgoraUserEntity, IUserSigninResponse, IUserSignupPayload } from "./user.types";
 
 
 
@@ -10,4 +10,9 @@ export const useSigninUser = () => useMutation<IUserSigninResponse,unknown,strin
 
 export const useSignupUser = () => useMutation<unknown,unknown,IUserSignupPayload>({
     mutationFn : (data) => Axios.post(`/signup`, data)
+})
+
+export const useGetUsers = () => useQuery<IAgoraUserEntity[]>({
+    queryKey : ["users"],
+    queryFn : () => Axios.get(`/users`)
 })

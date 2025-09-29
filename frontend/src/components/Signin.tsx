@@ -13,7 +13,6 @@ export default function SignIn() {
     e.preventDefault();
     mutate(name, {
       onSuccess: (data) => {
-        console.log(data)
         updateState({
           token: data?.token,
           userId: data?.userId,
