@@ -1,5 +1,4 @@
 
-
 // One entity in the "entities" array
 export interface IAgoraUserEntity {
   uuid: string;
@@ -10,8 +9,12 @@ export interface IAgoraUserEntity {
   activated: boolean;
 }
 
-
 export interface IUserSigninResponse {
     token : string
     userId: string
+}
+
+export interface IUserSignupPayload {
+  username: string
+  password: string
 }

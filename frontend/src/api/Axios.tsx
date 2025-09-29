@@ -3,11 +3,15 @@
 
 import axios from "axios";
 
+import useUserState from "@/state/useUserState";
 
+const  userId = useUserState?.getState()?.userId
 
 const Axios = axios.create({
     baseURL : "http://localhost:51000",
-
+    headers : {
+      Authorization : userId
+    }
 })
 
 
