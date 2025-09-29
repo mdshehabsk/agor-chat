@@ -8,7 +8,7 @@ import useUserState from "@/state/useUserState";
 const  userId = useUserState?.getState()?.userId
 
 const Axios = axios.create({
-    baseURL : "http://localhost:51000",
+    baseURL : process.env.NEXT_PUBLIC_API_URL,
     headers : {
       Authorization : userId
     }
