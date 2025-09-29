@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Get,
   HttpException,
   HttpStatus,
   Post,
@@ -10,6 +11,13 @@ import { AppService } from './app.service';
 @Controller()
 export class AppController {
   constructor(private readonly appService: AppService) {}
+
+  @Get('hello')
+  getHello() {
+    return {
+      msg: 'hello world',
+    };
+  }
 
   @Post('signin')
   signin(@Body('username') username: string) {
